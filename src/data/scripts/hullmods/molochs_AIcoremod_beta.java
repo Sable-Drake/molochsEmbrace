@@ -34,6 +34,17 @@ public class molochs_AIcoremod_beta extends BaseHullMod {
     public static final float maxfluxtohp = 0.1f;
 
     public void applyEffectsBeforeShipCreation(HullSize hullSize, MutableShipStatsAPI stats, String id) {
+        // Only apply effects if built-in (check via variant if available)
+        boolean isBuiltIn = false;
+        if (stats.getVariant() != null) {
+            isBuiltIn = stats.getVariant().getPermaMods().contains("molochs_AIcoremod_beta") ||
+                       stats.getVariant().getSModdedBuiltIns().contains("molochs_AIcoremod_beta");
+        }
+        
+        if (!isBuiltIn) {
+            return; // Don't apply effects if not built-in
+        }
+        
         stats.getAutofireAimAccuracy().modifyMult(id,10f);
         
         // Integrate Special Hullmod Upgrades Armament Support System effects
@@ -55,6 +66,19 @@ public class molochs_AIcoremod_beta extends BaseHullMod {
                 // Use default if can't read
             }
             stats.getWeaponTurnRateBonus().modifyPercent(id, turretTurnBonus);
+            
+            // OP bonus instead of cost reduction
+            float opBonus = 2f; // Default bonus for Beta
+            try {
+                float smallReduction = org.magiclib.util.MagicSettings.getFloat("mayu_specialupgrades", "shu_beta_core_cost_reduction_small_bonus");
+                float mediumReduction = org.magiclib.util.MagicSettings.getFloat("mayu_specialupgrades", "shu_beta_core_cost_reduction_medium_bonus");
+                float largeReduction = org.magiclib.util.MagicSettings.getFloat("mayu_specialupgrades", "shu_beta_core_cost_reduction_large_bonus");
+                opBonus = (smallReduction + mediumReduction + largeReduction) / 3f;
+            } catch (Exception e) {
+                // Use default if can't read
+            }
+            
+            stats.getDynamic().getMod("ordnance_points_mod").modifyFlat(id, opBonus);
         }
 
         if(stats.getSuppliesToRecover().base*DP_INCREASE_MULT<DP_INCREASE_MAX){
@@ -66,8 +90,17 @@ public class molochs_AIcoremod_beta extends BaseHullMod {
         }
     }
 
+
     public void advanceInCampaign(FleetMemberAPI member, float amount) {
         if(Global.getCurrentState() != GameState.TITLE) {
+            // Only process if built-in
+            boolean isBuiltIn = member.getVariant().getPermaMods().contains("molochs_AIcoremod_beta") ||
+                               member.getVariant().getSModdedBuiltIns().contains("molochs_AIcoremod_beta");
+            
+            if (!isBuiltIn) {
+                return; // Don't process if not built-in
+            }
+            
             Map<String, Object> data = Global.getSector().getPersistentData();
             if (!data.containsKey("aiintbeta_check_" + member.getId())) {
                 data.put("aiintbeta_check_" + member.getId(), "_");
@@ -76,14 +109,32 @@ public class molochs_AIcoremod_beta extends BaseHullMod {
                 }
             }
 
-            if (!member.getVariant().hasHullMod("molochs_AIcoreRefunder_betacore")) {
-                member.getVariant().getHullMods().add("molochs_AIcoreRefunder_betacore");
+            // Add Yunru integrated core for compatibility with Yunru's Hullmods techs
+            if (Global.getSettings().getModManager().isModEnabled("yunru_hullmods") && 
+                !member.getVariant().hasHullMod("yunru_betacore")) {
+                member.getVariant().getHullMods().add("yunru_betacore");
+            }
+            
+            // Suppress Special Hullmod Upgrades Armament Support System
+            if (Global.getSettings().getModManager().isModEnabled("mayu_specialupgrades")) {
+                if (member.getVariant().hasHullMod("specialsphmod_beta_core_upgrades")) {
+                    member.getVariant().getHullMods().remove("specialsphmod_beta_core_upgrades");
+                }
             }
         }
     }
 
     public void advanceInCombat(ShipAPI ship, float amount){
         if (!ship.isAlive()) return;
+        
+        // Only apply effects if built-in
+        boolean isBuiltIn = ship.getVariant().getPermaMods().contains("molochs_AIcoremod_beta") ||
+                           ship.getVariant().getSModdedBuiltIns().contains("molochs_AIcoremod_beta");
+        
+        if (!isBuiltIn) {
+            return; // Don't apply effects if not built-in
+        }
+        
         MutableShipStatsAPI stats = ship.getMutableStats();
 
         float relationshiplevel = 0f;
@@ -93,17 +144,17 @@ public class molochs_AIcoremod_beta extends BaseHullMod {
             if (ship.getFleetMember().getFleetData() != null && (Global.getSector().getPlayerFleet().getMembersWithFightersCopy().contains(ship.getFleetMember()) || ship.getFleetMember().getFleetData().equals(Global.getSector().getPlayerFleet().getFleetData()))) {
                 if (ship.getCaptain() != null) {
                     if (!ship.getCaptain().isDefault()) {
-                        if (!Global.getSector().getPersistentData().containsKey(ship.getCaptain().getId() + " AIIntegrationPartner")) {
-                            AI = Misc.getAICoreOfficerPlugin("alpha_core").createPerson("alpha_core", "player", Misc.random);
+                        if (!Global.getSector().getPersistentData().containsKey(ship.getCaptain().getId() + " AIIntegrationPartner_beta")) {
+                            AI = Misc.getAICoreOfficerPlugin("beta_core").createPerson("beta_core", "player", Misc.random);
                             AI.setName(OfficerManagerEvent.createOfficer(Global.getSector().getFaction("remnant"), 1, true).getName());
-                            Global.getSector().getPersistentData().put(ship.getCaptain().getId() + " AIIntegrationPartner", AI);
+                            Global.getSector().getPersistentData().put(ship.getCaptain().getId() + " AIIntegrationPartner_beta", AI);
 
                             relationshiplevel = 0f;
-                            Global.getSector().getPersistentData().put(ship.getCaptain().getId() + " AIIntegrationSyncRate", relationshiplevel);
+                            Global.getSector().getPersistentData().put(ship.getCaptain().getId() + " AIIntegrationSyncRate_beta", relationshiplevel);
 
                         } else {
-                            AI = (PersonAPI) Global.getSector().getPersistentData().get(ship.getCaptain().getId() + " AIIntegrationPartner");
-                            relationshiplevel = (float) Global.getSector().getPersistentData().get(ship.getCaptain().getId() + " AIIntegrationSyncRate");
+                            AI = (PersonAPI) Global.getSector().getPersistentData().get(ship.getCaptain().getId() + " AIIntegrationPartner_beta");
+                            relationshiplevel = (float) Global.getSector().getPersistentData().get(ship.getCaptain().getId() + " AIIntegrationSyncRate_beta");
 
                             if (!ship.hasListenerOfClass(molochs_AIcoremod_gamma.aicorechatter.class)) {
                                 ship.addListener(new molochs_AIcoremod_gamma.aicorechatter(ship, AI, relationshiplevel));
@@ -131,19 +182,49 @@ public class molochs_AIcoremod_beta extends BaseHullMod {
 
     @Override
     public boolean isApplicableToShip(ShipAPI ship) {
+        if (ship == null || ship.getVariant() == null) return false;
+        
+        boolean isBuiltIn = ship.getVariant().getPermaMods().contains("molochs_AIcoremod_beta") ||
+                           ship.getVariant().getSModdedBuiltIns().contains("molochs_AIcoremod_beta");
+        
+        if (!isBuiltIn) {
+            return false;
+        }
+        
         boolean hasai = false;
         for(String hullmod:ship.getVariant().getHullMods()){
             if((hullmod.equals("molochs_AIcoremod_alpha") || hullmod.equals("molochs_AIcoremod_gamma") || hullmod.equals("molochs_AIcoremod_omega")) && !hullmod.equals("molochs_AIcoremod_beta")){
                 hasai = true;
             }
         }
-        return ship != null && ship.getVariant() != null && !hasai;
+        
+        for(String hullmod:ship.getVariant().getPermaMods()){
+            if((hullmod.equals("molochs_AIcoremod_alpha") || hullmod.equals("molochs_AIcoremod_gamma") || hullmod.equals("molochs_AIcoremod_omega")) && !hullmod.equals("molochs_AIcoremod_beta")){
+                hasai = true;
+            }
+        }
+        
+        return !hasai;
     }
 
     public String getUnapplicableReason(ShipAPI ship) {
+        if (ship == null || ship.getVariant() == null) return null;
+        
+        boolean isBuiltIn = ship.getVariant().getPermaMods().contains("molochs_AIcoremod_beta") ||
+                           ship.getVariant().getSModdedBuiltIns().contains("molochs_AIcoremod_beta");
+        
+        if (!isBuiltIn) {
+            return "This hullmod must be installed using the installation hullmod at a spaceport";
+        }
 
         boolean hasai = false;
         for(String hullmod:ship.getVariant().getHullMods()){
+            if((hullmod.equals("molochs_AIcoremod_alpha") || hullmod.equals("molochs_AIcoremod_gamma") || hullmod.equals("molochs_AIcoremod_omega")) && !hullmod.equals("molochs_AIcoremod_beta")){
+                hasai = true;
+            }
+        }
+        
+        for(String hullmod:ship.getVariant().getPermaMods()){
             if((hullmod.equals("molochs_AIcoremod_alpha") || hullmod.equals("molochs_AIcoremod_gamma") || hullmod.equals("molochs_AIcoremod_omega")) && !hullmod.equals("molochs_AIcoremod_beta")){
                 hasai = true;
             }
@@ -156,16 +237,17 @@ public class molochs_AIcoremod_beta extends BaseHullMod {
         return null;
     }
 
+    @Override
     public boolean canBeAddedOrRemovedNow(ShipAPI ship, MarketAPI marketOrNull, CampaignUIAPI.CoreUITradeMode mode) {
-        if(ship.getVariant().hasHullMod("molochs_AIcoremod_beta")){
+        if (ship.getVariant().getSModdedBuiltIns().contains("molochs_AIcoremod_beta")) {
             return true;
-        }else{
-            return molochs_util_misc.playerHasCommodity("beta_core") && super.canBeAddedOrRemovedNow(ship, marketOrNull, mode);
         }
+        return false;
     }
 
+    @Override
     public String getCanNotBeInstalledNowReason(ShipAPI ship, MarketAPI marketOrNull, CampaignUIAPI.CoreUITradeMode mode) {
-        return !molochs_util_misc.playerHasCommodity("beta_core") ? "You do not have the required AI core" : super.getCanNotBeInstalledNowReason(ship, marketOrNull, mode);
+        return "This hullmod must be installed using the installation hullmod at a spaceport";
     }
 
     private final Color HL=Global.getSettings().getColor("hColor");
@@ -181,7 +263,20 @@ public class molochs_AIcoremod_beta extends BaseHullMod {
         Color[] arrB ={Misc.getHighlightColor(),F,F};
         Color[] arr2 ={Misc.getHighlightColor(),E};
         Color bad = Misc.getNegativeHighlightColor();
-        //title
+        
+        // Check if built-in
+        boolean isBuiltIn = false;
+        if (ship != null) {
+            isBuiltIn = ship.getVariant().getPermaMods().contains("molochs_AIcoremod_beta") ||
+                       ship.getVariant().getSModdedBuiltIns().contains("molochs_AIcoremod_beta");
+        }
+        
+        // Show inactive warning if not built-in
+        if (ship != null && !isBuiltIn) {
+            tooltip.addPara("", pad);
+            tooltip.addPara("%s This AI integration is not yet fully integrated. Install it using the installation hullmod at a spaceport to activate its effects.", pad, bad, "INACTIVE:");
+            return;
+        }
 
         if(ship == null) return;
 
@@ -192,17 +287,17 @@ public class molochs_AIcoremod_beta extends BaseHullMod {
             if (ship.getOriginalOwner() == -1) {
                 if (ship.getCaptain() != null) {
                     if (!ship.getCaptain().isDefault()) {
-                        if (!Global.getSector().getPersistentData().containsKey(ship.getCaptain().getId() + " AIIntegrationPartner")) {
-                            AI = Misc.getAICoreOfficerPlugin("alpha_core").createPerson("alpha_core", "player", Misc.random);
+                        if (!Global.getSector().getPersistentData().containsKey(ship.getCaptain().getId() + " AIIntegrationPartner_beta")) {
+                            AI = Misc.getAICoreOfficerPlugin("beta_core").createPerson("beta_core", "player", Misc.random);
                             AI.setName(OfficerManagerEvent.createOfficer(Global.getSector().getFaction("remnant"), 1, true).getName());
-                            Global.getSector().getPersistentData().put(ship.getCaptain().getId() + " AIIntegrationPartner", AI);
+                            Global.getSector().getPersistentData().put(ship.getCaptain().getId() + " AIIntegrationPartner_beta", AI);
 
                             relationshiplevel = 0f;
-                            Global.getSector().getPersistentData().put(ship.getCaptain().getId() + " AIIntegrationSyncRate", relationshiplevel);
+                            Global.getSector().getPersistentData().put(ship.getCaptain().getId() + " AIIntegrationSyncRate_beta", relationshiplevel);
 
                         } else {
-                            AI = (PersonAPI) Global.getSector().getPersistentData().get(ship.getCaptain().getId() + " AIIntegrationPartner");
-                            relationshiplevel = (float) Global.getSector().getPersistentData().get(ship.getCaptain().getId() + " AIIntegrationSyncRate");
+                            AI = (PersonAPI) Global.getSector().getPersistentData().get(ship.getCaptain().getId() + " AIIntegrationPartner_beta");
+                            relationshiplevel = (float) Global.getSector().getPersistentData().get(ship.getCaptain().getId() + " AIIntegrationSyncRate_beta");
                         }
                     }
                 }

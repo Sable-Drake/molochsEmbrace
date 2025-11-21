@@ -48,6 +48,17 @@ public class molochs_AIcoremod_omega extends BaseHullMod {
             return;
         }
         
+        // Only apply effects if built-in (check via variant if available)
+        boolean isBuiltIn = false;
+        if (stats.getVariant() != null) {
+            isBuiltIn = stats.getVariant().getPermaMods().contains("molochs_AIcoremod_omega") ||
+                       stats.getVariant().getSModdedBuiltIns().contains("molochs_AIcoremod_omega");
+        }
+        
+        if (!isBuiltIn) {
+            return; // Don't apply effects if not built-in
+        }
+        
         stats.getAutofireAimAccuracy().modifyMult(id,10f);
         
         // Integrate Special Hullmod Upgrades Armament Support System effects
@@ -75,6 +86,20 @@ public class molochs_AIcoremod_omega extends BaseHullMod {
                 // Use default if can't read
             }
             stats.getWeaponTurnRateBonus().modifyPercent(id, turretTurnBonus);
+            
+            // OP bonus instead of cost reduction (Omega uses Alpha values as base, but higher)
+            float opBonus = 9f;  // Higher than Alpha (1.5x)
+            try {
+                float alphaSmall = org.magiclib.util.MagicSettings.getFloat("mayu_specialupgrades", "shu_alpha_core_cost_reduction_small_bonus");
+                float alphaMedium = org.magiclib.util.MagicSettings.getFloat("mayu_specialupgrades", "shu_alpha_core_cost_reduction_medium_bonus");
+                float alphaLarge = org.magiclib.util.MagicSettings.getFloat("mayu_specialupgrades", "shu_alpha_core_cost_reduction_large_bonus");
+                float alphaAvg = (alphaSmall + alphaMedium + alphaLarge) / 3f;
+                opBonus = alphaAvg * 1.5f;
+            } catch (Exception e) {
+                // Use defaults if can't read
+            }
+            
+            stats.getDynamic().getMod("ordnance_points_mod").modifyFlat(id, opBonus);
         }
 
         if(stats.getSuppliesToRecover().base*DP_INCREASE_MULT<DP_INCREASE_MAX){
@@ -86,6 +111,7 @@ public class molochs_AIcoremod_omega extends BaseHullMod {
         }
     }
 
+
     public void advanceInCampaign(FleetMemberAPI member, float amount) {
         // Check if omega mechanics are enabled
         if (!molochs_settings.isOmegaMechanicEnabled()) {
@@ -93,6 +119,13 @@ public class molochs_AIcoremod_omega extends BaseHullMod {
         }
         
         if(Global.getCurrentState() != GameState.TITLE) {
+            // Only process if built-in
+            boolean isBuiltIn = member.getVariant().getPermaMods().contains("molochs_AIcoremod_omega") ||
+                               member.getVariant().getSModdedBuiltIns().contains("molochs_AIcoremod_omega");
+            
+            if (!isBuiltIn) {
+                return; // Don't process if not built-in
+            }
             Map<String, Object> data = Global.getSector().getPersistentData();
             if (!data.containsKey("aiintomega_check_" + member.getId())) {
                 data.put("aiintomega_check_" + member.getId(), "_");
@@ -101,8 +134,19 @@ public class molochs_AIcoremod_omega extends BaseHullMod {
                 }
             }
 
-            if (!member.getVariant().hasHullMod("molochs_AIcoreRefunder_omegacore")) {
-                member.getVariant().getHullMods().add("molochs_AIcoreRefunder_omegacore");
+            // Note: Omega cores don't have a Yunru equivalent, so no Yunru integration needed
+            
+            // Suppress Special Hullmod Upgrades Armament Support Systems (if any exist)
+            if (Global.getSettings().getModManager().isModEnabled("mayu_specialupgrades")) {
+                if (member.getVariant().hasHullMod("specialsphmod_alpha_core_upgrades")) {
+                    member.getVariant().getHullMods().remove("specialsphmod_alpha_core_upgrades");
+                }
+                if (member.getVariant().hasHullMod("specialsphmod_beta_core_upgrades")) {
+                    member.getVariant().getHullMods().remove("specialsphmod_beta_core_upgrades");
+                }
+                if (member.getVariant().hasHullMod("specialsphmod_gamma_core_upgrades")) {
+                    member.getVariant().getHullMods().remove("specialsphmod_gamma_core_upgrades");
+                }
             }
         }
     }
@@ -115,6 +159,14 @@ public class molochs_AIcoremod_omega extends BaseHullMod {
 			return;
 		}
 		
+		// Only apply effects if built-in
+		boolean isBuiltIn = ship.getVariant().getPermaMods().contains("molochs_AIcoremod_omega") ||
+		                   ship.getVariant().getSModdedBuiltIns().contains("molochs_AIcoremod_omega");
+		
+		if (!isBuiltIn) {
+			return; // Don't apply effects if not built-in
+		}
+		
 		MutableShipStatsAPI stats = ship.getMutableStats();
 
         float relationshiplevel = 0f;
@@ -124,17 +176,17 @@ public class molochs_AIcoremod_omega extends BaseHullMod {
             if (ship.getFleetMember().getFleetData() != null && (Global.getSector().getPlayerFleet().getMembersWithFightersCopy().contains(ship.getFleetMember()) || ship.getFleetMember().getFleetData().equals(Global.getSector().getPlayerFleet().getFleetData()))) {
                 if (ship.getCaptain() != null) {
                     if (!ship.getCaptain().isDefault()) {
-                        if (!Global.getSector().getPersistentData().containsKey(ship.getCaptain().getId() + " AIIntegrationPartner")) {
+                        if (!Global.getSector().getPersistentData().containsKey(ship.getCaptain().getId() + " AIIntegrationPartner_omega")) {
                             AI = Misc.getAICoreOfficerPlugin("omega_core").createPerson("omega_core", "player", Misc.random);
                             AI.setName(OfficerManagerEvent.createOfficer(Global.getSector().getFaction("remnant"), 1, true).getName());
-                            Global.getSector().getPersistentData().put(ship.getCaptain().getId() + " AIIntegrationPartner", AI);
+                            Global.getSector().getPersistentData().put(ship.getCaptain().getId() + " AIIntegrationPartner_omega", AI);
 
                             relationshiplevel = 0f;
-                            Global.getSector().getPersistentData().put(ship.getCaptain().getId() + " AIIntegrationSyncRate", relationshiplevel);
+                            Global.getSector().getPersistentData().put(ship.getCaptain().getId() + " AIIntegrationSyncRate_omega", relationshiplevel);
 
                         } else {
-                            AI = (PersonAPI) Global.getSector().getPersistentData().get(ship.getCaptain().getId() + " AIIntegrationPartner");
-                            relationshiplevel = (float) Global.getSector().getPersistentData().get(ship.getCaptain().getId() + " AIIntegrationSyncRate");
+                            AI = (PersonAPI) Global.getSector().getPersistentData().get(ship.getCaptain().getId() + " AIIntegrationPartner_omega");
+                            relationshiplevel = (float) Global.getSector().getPersistentData().get(ship.getCaptain().getId() + " AIIntegrationSyncRate_omega");
 
                             if (!ship.hasListenerOfClass(molochs_AIcoremod_omega.aicorechatter_omega.class)) {
                                 ship.addListener(new molochs_AIcoremod_omega.aicorechatter_omega(ship, AI, relationshiplevel));
@@ -162,28 +214,60 @@ public class molochs_AIcoremod_omega extends BaseHullMod {
 
    @Override
    public boolean isApplicableToShip(ShipAPI ship) {
+       if (ship == null || ship.getVariant() == null) return false;
+       
        // Check if omega mechanics are enabled
        if (!molochs_settings.isOmegaMechanicEnabled()) {
            return false;
        }
        
+       // Must be built-in
+       boolean isBuiltIn = ship.getVariant().getPermaMods().contains("molochs_AIcoremod_omega") ||
+                          ship.getVariant().getSModdedBuiltIns().contains("molochs_AIcoremod_omega");
+       
+       if (!isBuiltIn) {
+           return false;
+       }
+       
        boolean hasai = false;
        for(String hullmod:ship.getVariant().getHullMods()){
-           if(Global.getSettings().getHullModSpec(hullmod).hasTag("AIIntegration") && !hullmod.equals("molochs_AIcoremod_omega")){
+           com.fs.starfarer.api.loading.HullModSpecAPI spec = Global.getSettings().getHullModSpec(hullmod);
+           if(spec != null && spec.hasTag("AIIntegration") && !hullmod.equals("molochs_AIcoremod_omega")){
                hasai = true;
            }
        }
-       return ship != null && ship.getVariant() != null && !hasai;
+       
+       for(String hullmod:ship.getVariant().getPermaMods()){
+           if((hullmod.equals("molochs_AIcoremod_alpha") || hullmod.equals("molochs_AIcoremod_beta") || hullmod.equals("molochs_AIcoremod_gamma")) && !hullmod.equals("molochs_AIcoremod_omega")){
+               hasai = true;
+           }
+       }
+       
+       return !hasai;
    }
 
     public String getUnapplicableReason(ShipAPI ship) {
-        // Check if omega mechanics are enabled
+        if (ship == null || ship.getVariant() == null) return null;
+        
         if (!molochs_settings.isOmegaMechanicEnabled()) {
             return "Omega core mechanics are disabled";
+        }
+        
+        boolean isBuiltIn = ship.getVariant().getPermaMods().contains("molochs_AIcoremod_omega") ||
+                           ship.getVariant().getSModdedBuiltIns().contains("molochs_AIcoremod_omega");
+        
+        if (!isBuiltIn) {
+            return "This hullmod must be installed using the installation hullmod at a spaceport";
         }
 
         boolean hasai = false;
         for(String hullmod:ship.getVariant().getHullMods()){
+            if((hullmod.equals("molochs_AIcoremod_alpha") || hullmod.equals("molochs_AIcoremod_beta") || hullmod.equals("molochs_AIcoremod_gamma")) && !hullmod.equals("molochs_AIcoremod_omega")){
+                hasai = true;
+            }
+        }
+        
+        for(String hullmod:ship.getVariant().getPermaMods()){
             if((hullmod.equals("molochs_AIcoremod_alpha") || hullmod.equals("molochs_AIcoremod_beta") || hullmod.equals("molochs_AIcoremod_gamma")) && !hullmod.equals("molochs_AIcoremod_omega")){
                 hasai = true;
             }
@@ -196,24 +280,24 @@ public class molochs_AIcoremod_omega extends BaseHullMod {
         return null;
     }
 
+    @Override
     public boolean canBeAddedOrRemovedNow(ShipAPI ship, MarketAPI marketOrNull, CampaignUIAPI.CoreUITradeMode mode) {
-        // Check if omega mechanics are enabled
         if (!molochs_settings.isOmegaMechanicEnabled()) {
             return false;
         }
         
-        if(ship.getVariant().hasHullMod("molochs_AIcoremod_omega")){
+        if (ship.getVariant().getSModdedBuiltIns().contains("molochs_AIcoremod_omega")) {
             return true;
-        }else{
-            return molochs_util_misc.playerHasCommodity("omega_core") && super.canBeAddedOrRemovedNow(ship, marketOrNull, mode);
         }
+        return false;
     }
 
+    @Override
     public String getCanNotBeInstalledNowReason(ShipAPI ship, MarketAPI marketOrNull, CampaignUIAPI.CoreUITradeMode mode) {
         if (!molochs_settings.isOmegaMechanicEnabled()) {
             return "Omega core mechanics are disabled";
         }
-        return !molochs_util_misc.playerHasCommodity("omega_core") ? "You do not have the required AI core" : super.getCanNotBeInstalledNowReason(ship, marketOrNull, mode);
+        return "This hullmod must be installed using the installation hullmod at a spaceport";
     }
 
     private final Color HL=Global.getSettings().getColor("hColor");
@@ -229,7 +313,20 @@ public class molochs_AIcoremod_omega extends BaseHullMod {
         Color[] arrB ={Misc.getHighlightColor(),F,F};
         Color[] arr2 ={Misc.getHighlightColor(),E};
         Color bad = Misc.getNegativeHighlightColor();
-        //title
+        
+        // Check if built-in
+        boolean isBuiltIn = false;
+        if (ship != null) {
+            isBuiltIn = ship.getVariant().getPermaMods().contains("molochs_AIcoremod_omega") ||
+                       ship.getVariant().getSModdedBuiltIns().contains("molochs_AIcoremod_omega");
+        }
+        
+        // Show inactive warning if not built-in
+        if (ship != null && !isBuiltIn) {
+            tooltip.addPara("", pad);
+            tooltip.addPara("%s This AI integration is not yet fully integrated. Install it using the installation hullmod at a spaceport to activate its effects.", pad, bad, "INACTIVE:");
+            return;
+        }
 
         if(ship == null) return;
 
@@ -240,17 +337,17 @@ public class molochs_AIcoremod_omega extends BaseHullMod {
             if (ship.getOriginalOwner() == -1) {
                 if (ship.getCaptain() != null) {
                     if (!ship.getCaptain().isDefault()) {
-                        if (!Global.getSector().getPersistentData().containsKey(ship.getCaptain().getId() + " AIIntegrationPartner")) {
+                        if (!Global.getSector().getPersistentData().containsKey(ship.getCaptain().getId() + " AIIntegrationPartner_omega")) {
                             AI = Misc.getAICoreOfficerPlugin("omega_core").createPerson("omega_core", "player", Misc.random);
                             AI.setName(OfficerManagerEvent.createOfficer(Global.getSector().getFaction("remnant"), 1, true).getName());
-                            Global.getSector().getPersistentData().put(ship.getCaptain().getId() + " AIIntegrationPartner", AI);
+                            Global.getSector().getPersistentData().put(ship.getCaptain().getId() + " AIIntegrationPartner_omega", AI);
 
                             relationshiplevel = 0f;
-                            Global.getSector().getPersistentData().put(ship.getCaptain().getId() + " AIIntegrationSyncRate", relationshiplevel);
+                            Global.getSector().getPersistentData().put(ship.getCaptain().getId() + " AIIntegrationSyncRate_omega", relationshiplevel);
 
                         } else {
-                            AI = (PersonAPI) Global.getSector().getPersistentData().get(ship.getCaptain().getId() + " AIIntegrationPartner");
-                            relationshiplevel = (float) Global.getSector().getPersistentData().get(ship.getCaptain().getId() + " AIIntegrationSyncRate");
+                            AI = (PersonAPI) Global.getSector().getPersistentData().get(ship.getCaptain().getId() + " AIIntegrationPartner_omega");
+                            relationshiplevel = (float) Global.getSector().getPersistentData().get(ship.getCaptain().getId() + " AIIntegrationSyncRate_omega");
                         }
                     }
                 }
