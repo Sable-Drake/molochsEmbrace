@@ -2,11 +2,7 @@ package data.scripts;
 
 import com.fs.starfarer.api.BaseModPlugin;
 import com.fs.starfarer.api.Global;
-import com.fs.starfarer.api.PluginPick;
-import com.fs.starfarer.api.campaign.AICoreAdminPlugin;
-import com.fs.starfarer.api.campaign.AICoreOfficerPlugin;
 import com.fs.starfarer.api.campaign.CargoAPI;
-import com.fs.starfarer.api.campaign.CampaignPlugin;
 import com.fs.starfarer.api.campaign.InteractionDialogAPI;
 import com.fs.starfarer.api.campaign.SectorEntityToken;
 import com.fs.starfarer.api.campaign.listeners.ShowLootListener;
@@ -14,7 +10,7 @@ import com.fs.starfarer.api.impl.campaign.ids.Entities;
 import com.fs.starfarer.api.impl.campaign.procgen.SalvageEntityGenDataSpec;
 import com.fs.starfarer.api.impl.campaign.rulecmd.salvage.SalvageEntity;
 import com.fs.starfarer.api.impl.campaign.rulecmd.salvage.special.ShipRecoverySpecial;
-import com.fs.starfarer.api.impl.campaign.procgen.themes.DerelictShipEntityPlugin;
+import com.fs.starfarer.api.impl.campaign.DerelictShipEntityPlugin;
 import com.fs.starfarer.api.util.Misc;
 import data.scripts.utils.molochs_settings;
 import data.scripts.utils.molochs_OmegaCoreAdminPlugin;
@@ -45,6 +41,9 @@ public class MolochsEmbraceModPlugin extends BaseModPlugin {
     
     @Override
     public void onGameLoad(boolean newGame) {
+        // Register campaign plugin for AI core admin functionality
+        Global.getSector().registerPlugin(new MolochsEmbraceCampaignPlugin());
+        
         // Re-register listener on game load if needed
         if (molochs_settings.isOmegaMechanicEnabled()) {
             if (omegaDropListener == null) {
@@ -59,22 +58,6 @@ public class MolochsEmbraceModPlugin extends BaseModPlugin {
                 Global.getSector().getListenerManager().removeListener(omegaDropListener);
             }
         }
-    }
-    
-    /**
-     * Allow omega cores to be used as administrators
-     * Only if omega mechanics are enabled
-     */
-    @Override
-    public PluginPick<AICoreAdminPlugin> pickAICoreAdminPlugin(String commodityId) {
-        if (molochs_settings.isOmegaMechanicEnabled() && "omega_core".equals(commodityId)) {
-            // Use our custom omega core admin plugin
-            return new PluginPick<AICoreAdminPlugin>(
-                new molochs_OmegaCoreAdminPlugin(),
-                CampaignPlugin.PickPriority.MOD_SET
-            );
-        }
-        return null;
     }
     
     /**

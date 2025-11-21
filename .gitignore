@@ -8,6 +8,14 @@ bin/
 jars/*.jar
 !jars/.gitkeep
 
+# Build dependencies (hard links to external libraries)
+libs/
+
+# Build scripts and logs
+tools/build.bat
+tools/setup-libs.bat
+build_errors.txt
+
 # IDE files
 .idea/
 *.iml
