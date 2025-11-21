@@ -61,45 +61,13 @@ public class molochs_AIcoremod_omega extends BaseHullMod {
         
         stats.getAutofireAimAccuracy().modifyMult(id,10f);
         
-        // Integrate Special Hullmod Upgrades Armament Support System effects
-        if (Global.getSettings().getModManager().isModEnabled("mayu_specialupgrades")) {
-            // Autofire accuracy bonus: Omega 90% (1.5x Alpha default)
-            float autofireBonus = 90f;
-            try {
-                float alphaBonus = org.magiclib.util.MagicSettings.getFloat("mayu_specialupgrades", "shu_alpha_core_autofire_bonus");
-                if (alphaBonus > 0) {
-                    autofireBonus = alphaBonus * 1.5f; // Omega is 1.5x Alpha
-                }
-            } catch (Exception e) {
-                // Use default if can't read
-            }
-            stats.getAutofireAimAccuracy().modifyPercent(id, autofireBonus);
-            
-            // Turret turn rate bonus: Omega 100% (default, higher than Alpha)
-            float turretTurnBonus = 100f;
-            try {
-                float alphaBonus = org.magiclib.util.MagicSettings.getFloat("mayu_specialupgrades", "shu_alpha_core_turret_turn_bonus");
-                if (alphaBonus > 0) {
-                    turretTurnBonus = Math.max(100f, alphaBonus * 1.43f); // Omega is higher than Alpha
-                }
-            } catch (Exception e) {
-                // Use default if can't read
-            }
-            stats.getWeaponTurnRateBonus().modifyPercent(id, turretTurnBonus);
-            
-            // OP bonus instead of cost reduction (Omega uses Alpha values as base, but higher)
-            float opBonus = 9f;  // Higher than Alpha (1.5x)
-            try {
-                float alphaSmall = org.magiclib.util.MagicSettings.getFloat("mayu_specialupgrades", "shu_alpha_core_cost_reduction_small_bonus");
-                float alphaMedium = org.magiclib.util.MagicSettings.getFloat("mayu_specialupgrades", "shu_alpha_core_cost_reduction_medium_bonus");
-                float alphaLarge = org.magiclib.util.MagicSettings.getFloat("mayu_specialupgrades", "shu_alpha_core_cost_reduction_large_bonus");
-                float alphaAvg = (alphaSmall + alphaMedium + alphaLarge) / 3f;
-                opBonus = alphaAvg * 1.5f;
-            } catch (Exception e) {
-                // Use defaults if can't read
-            }
-            
-            stats.getDynamic().getMod("ordnance_points_mod").modifyFlat(id, opBonus);
+        // SHU bonuses are now handled by specialsphmod_omega_core_upgrades hullmod
+        // (which is automatically added in advanceInCampaign)
+        
+        // Apply omega-tier bonuses to Yunru's advanced hullmods
+        // This extends Yunru's system to support omega tier with enhanced bonuses
+        if (stats.getVariant() != null && Global.getSettings().getModManager().isModEnabled("yunru_hullmods")) {
+            applyYunruOmegaBonuses(stats, id);
         }
 
         if(stats.getSuppliesToRecover().base*DP_INCREASE_MULT<DP_INCREASE_MAX){
@@ -108,6 +76,79 @@ public class molochs_AIcoremod_omega extends BaseHullMod {
         }else{
             stats.getSuppliesToRecover().modifyFlat(id, DP_INCREASE_MAX);
             stats.getDynamic().getMod("deployment_points_mod").modifyFlat(id, DP_INCREASE_MAX);
+        }
+    }
+    
+    /**
+     * Applies omega-tier bonuses to Yunru's advanced hullmods.
+     * Extends Yunru's system to support omega tier with enhanced bonuses (1.4-1.6x alpha tier).
+     * Based on Yunru's config: alpha values are highest, omega should be better than alpha.
+     * 
+     * Note: This applies FULL omega-tier bonuses, not additions on top of alpha-tier.
+     * We only add yunru_omegacore marker (not yunru_alphacore), so Yunru's hullmods won't apply
+     * their own bonuses - we handle all the bonuses here.
+     */
+    private void applyYunruOmegaBonuses(MutableShipStatsAPI stats, String id) {
+        com.fs.starfarer.api.combat.ShipVariantAPI variant = stats.getVariant();
+        if (variant == null) return;
+        
+        // Only apply if yunru_omegacore is present (not yunru_alphacore)
+        if (!variant.hasHullMod("yunru_omegacore")) {
+            return;
+        }
+        
+        // Advanced Redlining Regulators (yunru_arr)
+        // Alpha: 25%, Beta: 15%, Gamma: 5% → Omega: 35% (1.4x alpha)
+        if (variant.hasHullMod("yunru_arr")) {
+            stats.getMaxSpeed().modifyPercent(id + "_arr_omega", 35f); // Full omega-tier bonus
+            stats.getAcceleration().modifyPercent(id + "_arr_omega", 35f);
+        }
+        
+        // Dedicated ECM Core (yunru_aiecm)
+        // Alpha: 5, Beta: 2, Gamma: 1 → Omega: 7 (1.4x alpha)
+        if (variant.hasHullMod("yunru_aiecm")) {
+            stats.getDynamic().getMod("ecm_rating_mod").modifyFlat(id + "_aiecm_omega", 7f); // Full omega-tier bonus
+        }
+        
+        // Automated Missile Racks (yunru_fast_fire_missiles)
+        // Alpha: 100%, Beta: 50%, Gamma: 25% → Omega: 150% (1.5x alpha)
+        if (variant.hasHullMod("yunru_fast_fire_missiles")) {
+            stats.getMissileRoFMult().modifyPercent(id + "_amr_omega", 150f); // Full omega-tier bonus
+        }
+        
+        // Quickstart Protocols (yunru_quickstart)
+        // Alpha: 50%, Beta: 25%, Gamma: 10% → Omega: 75% (1.5x alpha)
+        if (variant.hasHullMod("yunru_quickstart")) {
+            stats.getCRPerDeploymentPercent().modifyPercent(id + "_qsp_omega", -75f); // Full omega-tier bonus (75% reduction)
+        }
+        
+        // Live Containment Alteration (yunru_ai_energy)
+        // Beta: 100su, Alpha: 200su → Omega: 300su (1.5x alpha)
+        if (variant.hasHullMod("yunru_ai_energy")) {
+            stats.getEnergyWeaponRangeBonus().modifyFlat(id + "_lca_omega", 300f); // Full omega-tier bonus
+        }
+        
+        // Innocuous Targeting Core (yunru_ai_targeting)
+        // Extends range based on core tier → Omega gets enhanced range
+        // Alpha gets highest bonus, Omega should be better
+        if (variant.hasHullMod("yunru_ai_targeting")) {
+            // Assuming alpha gives ~200su total, omega gives ~300su (1.5x alpha)
+            stats.getBallisticWeaponRangeBonus().modifyFlat(id + "_itc_omega", 300f); // Full omega-tier bonus
+            stats.getEnergyWeaponRangeBonus().modifyFlat(id + "_itc_omega", 300f);
+        }
+        
+        // Deep Phase Diver (yunru_phasedive)
+        // Speed increase based on core tier → Omega gets enhanced speed
+        // Assuming alpha gives highest bonus, omega gives 1.5x
+        if (variant.hasHullMod("yunru_phasedive")) {
+            stats.getMaxSpeed().modifyPercent(id + "_dpd_omega", 37.5f); // Full omega-tier bonus (assuming alpha is 25%, omega is 1.5x)
+        }
+        
+        // Remote Fighter Network (yunru_remote_fighters)
+        // Range: 50%, Damage: 10% (same for all tiers) → Omega gets enhanced bonuses
+        if (variant.hasHullMod("yunru_remote_fighters")) {
+            stats.getFighterWingRange().modifyPercent(id + "_rfn_omega", 75f); // Enhanced for omega (1.5x base)
+            stats.getDamageToFighters().modifyPercent(id + "_rfn_omega", 15f); // Enhanced for omega (1.5x base)
         }
     }
 
@@ -134,19 +175,18 @@ public class molochs_AIcoremod_omega extends BaseHullMod {
                 }
             }
 
-            // Note: Omega cores don't have a Yunru equivalent, so no Yunru integration needed
+            // Add Yunru omega core marker - extends Yunru's AI core mechanics to support Omega tier
+            // We only add yunru_omegacore (not yunru_alphacore) because we apply full omega-tier
+            // bonuses directly in applyYunruOmegaBonuses() instead of relying on Yunru's alpha-tier bonuses
+            if (Global.getSettings().getModManager().isModEnabled("yunru_hullmods") && 
+                !member.getVariant().hasHullMod("yunru_omegacore")) {
+                member.getVariant().getHullMods().add("yunru_omegacore");
+            }
             
-            // Suppress Special Hullmod Upgrades Armament Support Systems (if any exist)
-            if (Global.getSettings().getModManager().isModEnabled("mayu_specialupgrades")) {
-                if (member.getVariant().hasHullMod("specialsphmod_alpha_core_upgrades")) {
-                    member.getVariant().getHullMods().remove("specialsphmod_alpha_core_upgrades");
-                }
-                if (member.getVariant().hasHullMod("specialsphmod_beta_core_upgrades")) {
-                    member.getVariant().getHullMods().remove("specialsphmod_beta_core_upgrades");
-                }
-                if (member.getVariant().hasHullMod("specialsphmod_gamma_core_upgrades")) {
-                    member.getVariant().getHullMods().remove("specialsphmod_gamma_core_upgrades");
-                }
+            // Add SHU omega core upgrades marker - extends SHU's Armament Support System to support Omega tier
+            if (Global.getSettings().getModManager().isModEnabled("mayu_specialupgrades") && 
+                !member.getVariant().hasHullMod("specialsphmod_omega_core_upgrades")) {
+                member.getVariant().getHullMods().add("specialsphmod_omega_core_upgrades");
             }
         }
     }

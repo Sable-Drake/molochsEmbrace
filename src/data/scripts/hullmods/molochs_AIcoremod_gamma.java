@@ -55,40 +55,6 @@ public class molochs_AIcoremod_gamma extends BaseHullMod {
         }
         
         stats.getAutofireAimAccuracy().modifyMult(id,10f);
-        
-        // Integrate Special Hullmod Upgrades Armament Support System effects
-        if (Global.getSettings().getModManager().isModEnabled("mayu_specialupgrades")) {
-            // Autofire accuracy bonus: Gamma 15% (default)
-            float autofireBonus = 15f;
-            try {
-                autofireBonus = org.magiclib.util.MagicSettings.getFloat("mayu_specialupgrades", "shu_gamma_core_autofire_bonus");
-            } catch (Exception e) {
-                // Use default if can't read
-            }
-            stats.getAutofireAimAccuracy().modifyPercent(id, autofireBonus);
-            
-            // Turret turn rate bonus: Gamma 30% (default)
-            float turretTurnBonus = 30f;
-            try {
-                turretTurnBonus = org.magiclib.util.MagicSettings.getFloat("mayu_specialupgrades", "shu_gamma_core_turret_turn_bonus");
-            } catch (Exception e) {
-                // Use default if can't read
-            }
-            stats.getWeaponTurnRateBonus().modifyPercent(id, turretTurnBonus);
-            
-            // OP bonus instead of cost reduction
-            float opBonus = 1.33f; // Default bonus for Gamma
-            try {
-                float smallReduction = org.magiclib.util.MagicSettings.getFloat("mayu_specialupgrades", "shu_gamma_core_cost_reduction_small_bonus");
-                float mediumReduction = org.magiclib.util.MagicSettings.getFloat("mayu_specialupgrades", "shu_gamma_core_cost_reduction_medium_bonus");
-                float largeReduction = org.magiclib.util.MagicSettings.getFloat("mayu_specialupgrades", "shu_gamma_core_cost_reduction_large_bonus");
-                opBonus = (smallReduction + mediumReduction + largeReduction) / 3f;
-            } catch (Exception e) {
-                // Use default if can't read
-            }
-            
-            stats.getDynamic().getMod("ordnance_points_mod").modifyFlat(id, opBonus);
-        }
 
         if(stats.getSuppliesToRecover().base*DP_INCREASE_MULT<DP_INCREASE_MAX){
             stats.getSuppliesToRecover().modifyMult(id, 1f+DP_INCREASE_MULT);
@@ -115,19 +81,6 @@ public class molochs_AIcoremod_gamma extends BaseHullMod {
                 data.put("aiintgamma_check_" + member.getId(), "_");
                 if (member.getFleetData() != null && member.getFleetData().getFleet() != null && member.getFleetData().getFleet().equals(Global.getSector().getPlayerFleet())) {
                     molochs_util_misc.removePlayerCommodity("gamma_core");
-                }
-            }
-
-            // Add Yunru integrated core for compatibility with Yunru's Hullmods techs
-            if (Global.getSettings().getModManager().isModEnabled("yunru_hullmods") && 
-                !member.getVariant().hasHullMod("yunru_gammacore")) {
-                member.getVariant().getHullMods().add("yunru_gammacore");
-            }
-            
-            // Suppress Special Hullmod Upgrades Armament Support System
-            if (Global.getSettings().getModManager().isModEnabled("mayu_specialupgrades")) {
-                if (member.getVariant().hasHullMod("specialsphmod_gamma_core_upgrades")) {
-                    member.getVariant().getHullMods().remove("specialsphmod_gamma_core_upgrades");
                 }
             }
         }

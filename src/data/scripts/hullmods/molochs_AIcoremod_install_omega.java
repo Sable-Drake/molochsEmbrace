@@ -96,6 +96,13 @@ public class molochs_AIcoremod_install_omega extends BaseHullMod {
             }
         }
         
+        // Don't allow if other Moloch install hullmods are present
+        if (ship.getVariant().hasHullMod("molochs_AIcoremod_install_alpha") ||
+            ship.getVariant().hasHullMod("molochs_AIcoremod_install_beta") ||
+            ship.getVariant().hasHullMod("molochs_AIcoremod_install_gamma")) {
+            return false;
+        }
+        
         for (String hullmod : ship.getVariant().getHullMods()) {
             if (hullmod.equals("molochs_AIcoremod_alpha") || 
                 hullmod.equals("molochs_AIcoremod_beta") ||

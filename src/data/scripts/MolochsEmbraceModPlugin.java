@@ -21,6 +21,7 @@ public class MolochsEmbraceModPlugin extends BaseModPlugin {
     
     private OmegaCoreDropListener omegaDropListener;
     
+    
     @Override
     public void onApplicationLoad() {
         // Check for incompatible mods

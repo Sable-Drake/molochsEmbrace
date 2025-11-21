@@ -46,40 +46,6 @@ public class molochs_AIcoremod_beta extends BaseHullMod {
         }
         
         stats.getAutofireAimAccuracy().modifyMult(id,10f);
-        
-        // Integrate Special Hullmod Upgrades Armament Support System effects
-        if (Global.getSettings().getModManager().isModEnabled("mayu_specialupgrades")) {
-            // Autofire accuracy bonus: Beta 30% (default)
-            float autofireBonus = 30f;
-            try {
-                autofireBonus = org.magiclib.util.MagicSettings.getFloat("mayu_specialupgrades", "shu_beta_core_autofire_bonus");
-            } catch (Exception e) {
-                // Use default if can't read
-            }
-            stats.getAutofireAimAccuracy().modifyPercent(id, autofireBonus);
-            
-            // Turret turn rate bonus: Beta 50% (default)
-            float turretTurnBonus = 50f;
-            try {
-                turretTurnBonus = org.magiclib.util.MagicSettings.getFloat("mayu_specialupgrades", "shu_beta_core_turret_turn_bonus");
-            } catch (Exception e) {
-                // Use default if can't read
-            }
-            stats.getWeaponTurnRateBonus().modifyPercent(id, turretTurnBonus);
-            
-            // OP bonus instead of cost reduction
-            float opBonus = 2f; // Default bonus for Beta
-            try {
-                float smallReduction = org.magiclib.util.MagicSettings.getFloat("mayu_specialupgrades", "shu_beta_core_cost_reduction_small_bonus");
-                float mediumReduction = org.magiclib.util.MagicSettings.getFloat("mayu_specialupgrades", "shu_beta_core_cost_reduction_medium_bonus");
-                float largeReduction = org.magiclib.util.MagicSettings.getFloat("mayu_specialupgrades", "shu_beta_core_cost_reduction_large_bonus");
-                opBonus = (smallReduction + mediumReduction + largeReduction) / 3f;
-            } catch (Exception e) {
-                // Use default if can't read
-            }
-            
-            stats.getDynamic().getMod("ordnance_points_mod").modifyFlat(id, opBonus);
-        }
 
         if(stats.getSuppliesToRecover().base*DP_INCREASE_MULT<DP_INCREASE_MAX){
             stats.getSuppliesToRecover().modifyMult(id, 1f+DP_INCREASE_MULT);
@@ -106,19 +72,6 @@ public class molochs_AIcoremod_beta extends BaseHullMod {
                 data.put("aiintbeta_check_" + member.getId(), "_");
                 if (member.getFleetData() != null && member.getFleetData().getFleet() != null && member.getFleetData().getFleet().equals(Global.getSector().getPlayerFleet())) {
                     molochs_util_misc.removePlayerCommodity("beta_core");
-                }
-            }
-
-            // Add Yunru integrated core for compatibility with Yunru's Hullmods techs
-            if (Global.getSettings().getModManager().isModEnabled("yunru_hullmods") && 
-                !member.getVariant().hasHullMod("yunru_betacore")) {
-                member.getVariant().getHullMods().add("yunru_betacore");
-            }
-            
-            // Suppress Special Hullmod Upgrades Armament Support System
-            if (Global.getSettings().getModManager().isModEnabled("mayu_specialupgrades")) {
-                if (member.getVariant().hasHullMod("specialsphmod_beta_core_upgrades")) {
-                    member.getVariant().getHullMods().remove("specialsphmod_beta_core_upgrades");
                 }
             }
         }
