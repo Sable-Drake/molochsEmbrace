@@ -35,6 +35,27 @@ public class molochs_AIcoremod_beta extends BaseHullMod {
 
     public void applyEffectsBeforeShipCreation(HullSize hullSize, MutableShipStatsAPI stats, String id) {
         stats.getAutofireAimAccuracy().modifyMult(id,10f);
+        
+        // Integrate Special Hullmod Upgrades Armament Support System effects
+        if (Global.getSettings().getModManager().isModEnabled("mayu_specialupgrades")) {
+            // Autofire accuracy bonus: Beta 30% (default)
+            float autofireBonus = 30f;
+            try {
+                autofireBonus = org.magiclib.util.MagicSettings.getFloat("mayu_specialupgrades", "shu_beta_core_autofire_bonus");
+            } catch (Exception e) {
+                // Use default if can't read
+            }
+            stats.getAutofireAimAccuracy().modifyPercent(id, autofireBonus);
+            
+            // Turret turn rate bonus: Beta 50% (default)
+            float turretTurnBonus = 50f;
+            try {
+                turretTurnBonus = org.magiclib.util.MagicSettings.getFloat("mayu_specialupgrades", "shu_beta_core_turret_turn_bonus");
+            } catch (Exception e) {
+                // Use default if can't read
+            }
+            stats.getWeaponTurnRateBonus().modifyPercent(id, turretTurnBonus);
+        }
 
         if(stats.getSuppliesToRecover().base*DP_INCREASE_MULT<DP_INCREASE_MAX){
             stats.getSuppliesToRecover().modifyMult(id, 1f+DP_INCREASE_MULT);
@@ -112,7 +133,7 @@ public class molochs_AIcoremod_beta extends BaseHullMod {
     public boolean isApplicableToShip(ShipAPI ship) {
         boolean hasai = false;
         for(String hullmod:ship.getVariant().getHullMods()){
-            if(Global.getSettings().getHullModSpec(hullmod).hasTag("AIIntegration") && !hullmod.equals("molochs_AIcoremod_beta")){
+            if((hullmod.equals("molochs_AIcoremod_alpha") || hullmod.equals("molochs_AIcoremod_gamma") || hullmod.equals("molochs_AIcoremod_omega")) && !hullmod.equals("molochs_AIcoremod_beta")){
                 hasai = true;
             }
         }
@@ -123,7 +144,7 @@ public class molochs_AIcoremod_beta extends BaseHullMod {
 
         boolean hasai = false;
         for(String hullmod:ship.getVariant().getHullMods()){
-            if(Global.getSettings().getHullModSpec(hullmod).hasTag("AIIntegration") && !hullmod.equals("molochs_AIcoremod_beta")){
+            if((hullmod.equals("molochs_AIcoremod_alpha") || hullmod.equals("molochs_AIcoremod_gamma") || hullmod.equals("molochs_AIcoremod_omega")) && !hullmod.equals("molochs_AIcoremod_beta")){
                 hasai = true;
             }
         }

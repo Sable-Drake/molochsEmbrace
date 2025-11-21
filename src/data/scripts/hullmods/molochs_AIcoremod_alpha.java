@@ -23,7 +23,7 @@ import java.util.Map;
 
 public class molochs_AIcoremod_alpha extends BaseHullMod {
 
-    public static final float basetimedilation = 0.10f;
+    public static final float basetimedilation = 0.12f;
     public static final float repmaxtimedilation = 0.10f;
 
     public static final float repgaincoefficient = 0.002f;
@@ -39,6 +39,27 @@ public class molochs_AIcoremod_alpha extends BaseHullMod {
 
     public void applyEffectsBeforeShipCreation(HullSize hullSize, MutableShipStatsAPI stats, String id) {
         stats.getAutofireAimAccuracy().modifyMult(id,10f);
+        
+        // Integrate Special Hullmod Upgrades Armament Support System effects
+        if (Global.getSettings().getModManager().isModEnabled("mayu_specialupgrades")) {
+            // Autofire accuracy bonus: Alpha 60% (default)
+            float autofireBonus = 60f;
+            try {
+                autofireBonus = org.magiclib.util.MagicSettings.getFloat("mayu_specialupgrades", "shu_alpha_core_autofire_bonus");
+            } catch (Exception e) {
+                // Use default if can't read
+            }
+            stats.getAutofireAimAccuracy().modifyPercent(id, autofireBonus);
+            
+            // Turret turn rate bonus: Alpha 70% (default)
+            float turretTurnBonus = 70f;
+            try {
+                turretTurnBonus = org.magiclib.util.MagicSettings.getFloat("mayu_specialupgrades", "shu_alpha_core_turret_turn_bonus");
+            } catch (Exception e) {
+                // Use default if can't read
+            }
+            stats.getWeaponTurnRateBonus().modifyPercent(id, turretTurnBonus);
+        }
 
         if(stats.getSuppliesToRecover().base*DP_INCREASE_MULT<DP_INCREASE_MAX){
             stats.getSuppliesToRecover().modifyMult(id, 1f+DP_INCREASE_MULT);
@@ -127,7 +148,7 @@ public class molochs_AIcoremod_alpha extends BaseHullMod {
 
         boolean hasai = false;
         for(String hullmod:ship.getVariant().getHullMods()){
-            if(Global.getSettings().getHullModSpec(hullmod).hasTag("AIIntegration") && !hullmod.equals("molochs_AIcoremod_alpha")){
+            if((hullmod.equals("molochs_AIcoremod_beta") || hullmod.equals("molochs_AIcoremod_gamma") || hullmod.equals("molochs_AIcoremod_omega")) && !hullmod.equals("molochs_AIcoremod_alpha")){
                 hasai = true;
             }
         }
