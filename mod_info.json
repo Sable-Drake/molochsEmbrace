@@ -1,9 +1,9 @@
 {
  "id": "molochs_embrace",
  "name": "Moloch's Embrace",
- "author": "Moloch",
+ "author": "SableDrake",
  "version": "1.0",
- "description": "A collection of hullmods and weapons, including AI Integration systems.",
+ "description": "A continuation and improvement of Epta Consortium's hullmods, featuring a complete AI Integration system. Integrate Gamma, Beta, Alpha, or legendary Omega AI cores directly into your ships for enhanced performance, perfect autofire accuracy, and dynamic AI personas that develop bonds with their captains. Includes omega core drops from Tesseract ships, administrator support, and integration with Special Hullmod Upgrades and Yunru's Hullmods. Incompatible with Astral Ascension.",
  "gameVersion": "0.98a",
  "modPlugin": "data.scripts.MolochsEmbraceModPlugin",
  "jars": ["jars/MolochsEmbrace.jar"],
@@ -11,7 +11,8 @@
  "utility": "false",
  "dependencies": [
   {"id": "lw_lazylib", "name": "LazyLib"},
-  {"id": "MagicLib", "name": "MagicLib"}
+  {"id": "MagicLib", "name": "MagicLib"},
+  {"id": "lunalib", "name": "LunaLib"}
  ]
 }
 
