@@ -46,7 +46,7 @@ public class molochs_aisupport extends BaseHullMod {
         Color bad = Misc.getNegativeHighlightColor();
 
 
-        LabelAPI label = tooltip.addPara("Pilot's mind is directly uploaded to a %s with their AI partner which vastly improves design efficiency. Grants %s, however, if an %s is not installed then the %s.", opad, t,
+        LabelAPI label = tooltip.addPara("A salvaged Tri-Tachyon relic from before the AI Wars. The pilot's mind is directly uploaded to a %s with their AI partner which vastly improves design efficiency. Grants %s, however, if an %s is not installed then the %s.", opad, t,
                 "" + "VR Simulation",
                 "" + "350 ground support bonus",
                 "" + "AI Integration",

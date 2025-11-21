@@ -75,7 +75,7 @@ public class molochs_artificial_mothball extends BaseHullMod {
 
 
 
-        LabelAPI label = tooltip.addPara("An alternative method of %s developed by Epta engineers. By installing a delta + core to run basic maintenance tasks, the ship can be put back into working order in minutes rather than days. Ships under automated mothball %s, and %s.", opad, t,
+        LabelAPI label = tooltip.addPara("An old Tri-Tachyon relic system. An alternative method of %s developed by Tri-Tachyon engineers before the AI Wars. By installing a delta + core to run basic maintenance tasks, the ship can be put back into working order in minutes rather than days. Ships under automated mothball %s, and %s.", opad, t,
         "" + "mothballing ships",
         "" + "do not require any crew",
         "" + "halves maintenance supply cost");
