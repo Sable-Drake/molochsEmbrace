@@ -1,4 +1,4 @@
 fieldID,fieldName,fieldType,defaultValue,secondaryValue,fieldDescription,minValue,maxValue,tab
-molochs_enableOmegaMechanic,Enable Omega Core Mechanics,Boolean,true,,If disabled, suppresses all omega core mechanics including the Omega AI Integration hullmod, omega core drops, and administrator/industry support.,,General
-molochs_omegaCoreDropChance,Omega Core Drop Chance,Double,5.0,,Chance for Tesseract ships to drop an omega core when destroyed (if Astral Ascension mod is not present). Value is a percentage (0-100). Only applies if omega mechanics are enabled.,0.0,100.0,General
+molochs_enableOmegaMechanic,Enable Omega Core Mechanics,Boolean,true,,Allows omega cores to function as ship AI integrations (hullmods), drop from Tesseract ship salvage, and serve as colony administrators. Disabling removes all omega core features from the mod.,,General
+molochs_omegaCoreDropChance,Omega Core Drop Chance,Double,5.0,,Chance for Tesseract ships to drop an omega core when salvaged. Value is a percentage (0-100). Only applies if omega mechanics are enabled. Higher values increase the likelihood of finding omega cores from destroyed Tesseract ships.,0.0,100.0,General
 
