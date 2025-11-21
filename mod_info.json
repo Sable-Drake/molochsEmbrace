@@ -1,0 +1,17 @@
+{
+ "id": "molochs_embrace",
+ "name": "Moloch's Embrace",
+ "author": "Moloch",
+ "version": "1.0",
+ "description": "A collection of hullmods and weapons, including AI Integration systems.",
+ "gameVersion": "0.98a",
+ "modPlugin": "data.scripts.MolochsEmbraceModPlugin",
+ "jars": ["jars/MolochsEmbrace.jar"],
+ "totalConversion": "false",
+ "utility": "false",
+ "dependencies": [
+  {"id": "lw_lazylib", "name": "LazyLib"},
+  {"id": "MagicLib", "name": "MagicLib"}
+ ]
+}
+

@@ -1,0 +1,40 @@
+# Compiled Java classes
+*.class
+build/
+out/
+bin/
+
+# JAR files (compiled mod)
+jars/*.jar
+!jars/.gitkeep
+
+# IDE files
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.settings/
+.classpath
+.project
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Gradle (if used)
+.gradle/
+gradle/
+gradlew
+gradlew.bat
+
+# Temporary files
+*.tmp
+*.bak
+*~
+
+# Log files
+*.log
+
+
